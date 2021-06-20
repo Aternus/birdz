@@ -1,7 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 
-import { fetchBirds } from "@/services/zapariAPI.js";
+import { fetchBirds, fetchBirdsTransformer } from "@/services/zapariAPI.js";
 
 Vue.use(Vuex);
 
@@ -21,11 +21,7 @@ export default new Vuex.Store({
       state.isFetchingBirds = payload;
     },
     setBirds(state, payload) {
-      const currentIdx = state.birds.length;
-      const newBirds = payload.map((bird, idx) =>
-        fetchBirdsTransformer(bird, currentIdx + idx)
-      );
-      state.birds = [...state.birds, ...newBirds];
+      state.birds = payload;
     },
   },
   getters: {
@@ -48,11 +44,15 @@ export default new Vuex.Store({
     },
   },
   actions: {
-    async fetchBirdsFromAPI({ commit }, numberOfBirds = 20) {
+    async fetchBirdsFromAPI({ state, commit }, numberOfBirds = 20) {
       try {
         commit("setFetchingBirds", true);
         const birds = await fetchBirds(numberOfBirds);
-        commit("setBirds", birds);
+        const currentIdx = state.birds.length;
+        const newBirds = birds.map((bird, idx) =>
+          fetchBirdsTransformer(bird, currentIdx + idx)
+        );
+        commit("setBirds", [...state.birds, ...newBirds]);
       } catch (error) {
         commit("setError", String(error));
       } finally {
@@ -62,19 +62,3 @@ export default new Vuex.Store({
   },
   modules: {},
 });
-
-function fetchBirdsTransformer(
-  { name, image, sound, location: { lat, lng } },
-  idx
-) {
-  return {
-    id: idx,
-    name,
-    image,
-    sound,
-    location: {
-      lat,
-      lng,
-    },
-  };
-}

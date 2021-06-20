@@ -32,3 +32,19 @@ export async function fetchBirds(numberOfBirds) {
     return [];
   }
 }
+
+export function fetchBirdsTransformer(
+  { name, image, sound, location: { lat, lng } },
+  idx
+) {
+  return {
+    id: idx,
+    name,
+    image,
+    sound,
+    location: {
+      lat,
+      lng,
+    },
+  };
+}
